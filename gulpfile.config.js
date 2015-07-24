@@ -25,22 +25,22 @@
 // Usage
 // babel gulpfile.babel.js --out-file gulpfile.js
 
-import fs from 'fs';
-import path from 'path';
-import gulp from 'gulp';
-import del from 'del';
-import runSequence from 'run-sequence';
-import browserSync from 'browser-sync';
-import swPrecache from 'sw-precache';
-import gulpLoadPlugins from 'gulp-load-plugins';
-import {output as pagespeed} from 'psi';
-import pkg from './package.json';
+var fs = require('fs');
+var path = require('path');
+var gulp = require('gulp');
+var del = require('del');
+var runSequence = require('run-sequence');
+var browserSync = require('browser-sync');
+var swPrecache  = require('sw-precache');
+var gulpLoadPlugins = require('gulp-load-plugins');
+var pagespeed = require('psi');
+var pkg = require('./package.json');
 
-const $ = gulpLoadPlugins();
-const reload = browserSync.reload;
+var $ = gulpLoadPlugins();
+var reload = browserSync.reload;
 
 // Lint JavaScript
-gulp.task('jshint', () => {
+gulp.task('jshint', function(){
   return gulp.src('app/scripts/**/*.js')
     .pipe(reload({stream: true, once: true}))
     .pipe($.jshint())
@@ -49,7 +49,7 @@ gulp.task('jshint', () => {
 });
 
 // Optimize images
-gulp.task('images', () => {
+gulp.task('images', function(){
   return gulp.src('app/images/**/*')
     .pipe($.cache($.imagemin({
       progressive: true,
@@ -60,7 +60,7 @@ gulp.task('images', () => {
 });
 
 // Copy all files at the root level (app)
-gulp.task('copy', () => {
+gulp.task('copy', function(){
   return gulp.src([
     'app/*',
     '!app/*.html',
@@ -72,15 +72,15 @@ gulp.task('copy', () => {
 });
 
 // Copy web fonts to dist
-gulp.task('fonts', () => {
+gulp.task('fonts', function(){
   return gulp.src(['app/fonts/**'])
     .pipe(gulp.dest('dist/fonts'))
     .pipe($.size({title: 'fonts'}));
 });
 
 // Compile and automatically prefix stylesheets
-gulp.task('styles', () => {
-  const AUTOPREFIXER_BROWSERS = [
+gulp.task('styles', function(){
+  var AUTOPREFIXER_BROWSERS = [
     'ie >= 10',
     'ie_mob >= 10',
     'ff >= 30',
@@ -112,7 +112,7 @@ gulp.task('styles', () => {
 });
 
 // Concatenate and minify JavaScript
-gulp.task('scripts', () => {
+gulp.task('scripts', function(){
   return gulp.src(['./app/scripts/main.js'])
     .pipe($.concat('main.min.js'))
     .pipe($.uglify({preserveComments: 'some'}))
@@ -122,8 +122,8 @@ gulp.task('scripts', () => {
 });
 
 // Scan your HTML for assets & optimize them
-gulp.task('html', () => {
-  const assets = $.useref.assets({searchPath: '{.tmp,app}'});
+gulp.task('html', function(){
+  var assets = $.useref.assets({searchPath: '{.tmp,app}'});
 
   return gulp.src('app/**/*.html')
     .pipe(assets)
@@ -155,10 +155,10 @@ gulp.task('html', () => {
 });
 
 // Clean output directory
-gulp.task('clean', cb => del(['.tmp', 'dist/*', '!dist/.git'], {dot: true}, cb));
+gulp.task('clean', function(cb) { del(['.tmp', 'dist/*', '!dist/.git'], {dot: true}, cb)} );
 
 // Watch files for changes & reload
-gulp.task('serve', ['styles'], () => {
+gulp.task('serve', ['styles'], function(){
   browserSync({
     notify: false,
     // Customize the BrowserSync console logging prefix
@@ -177,7 +177,7 @@ gulp.task('serve', ['styles'], () => {
 });
 
 // Build and serve the output from the dist build
-gulp.task('serve:dist', ['default'], () => {
+gulp.task('serve:dist', ['default'], function(){
   browserSync({
     notify: false,
     logPrefix: 'WSK',
@@ -191,7 +191,7 @@ gulp.task('serve:dist', ['default'], () => {
 });
 
 // Build production files, the default task
-gulp.task('default', ['clean'], cb => {
+gulp.task('default', ['clean'], function(cb) {
   runSequence(
     'styles',
     ['jshint', 'html', 'scripts', 'images', 'fonts', 'copy'],
@@ -201,7 +201,7 @@ gulp.task('default', ['clean'], cb => {
 });
 
 // Run PageSpeed Insights
-gulp.task('pagespeed', cb => {
+gulp.task('pagespeed', function(cb) {
   // Update the below URL to the public URL of your site
   pagespeed('example.com', {
     strategy: 'mobile',
@@ -216,8 +216,8 @@ gulp.task('pagespeed', cb => {
 // Generate a service worker file that will provide offline functionality for
 // local resources. This should only be done for the 'dist' directory, to allow
 // live reload to work as expected when serving from the 'app' directory.
-gulp.task('generate-service-worker', cb => {
-  const rootDir = 'dist';
+gulp.task('generate-service-worker', function(cb) {
+  var rootDir = 'dist';
 
   swPrecache({
     // Used to avoid cache conflicts when serving on localhost.
@@ -232,15 +232,15 @@ gulp.task('generate-service-worker', cb => {
     ],
     // Translates a static file path to the relative URL that it's served from.
     stripPrefix: path.join(rootDir, path.sep)
-  }, (err, swFileContents) => {
+  }, function(err, swFileContents) {
     if (err) {
       cb(err);
       return;
     }
 
-    const filepath = path.join(rootDir, 'service-worker.js');
+    var filepath = path.join(rootDir, 'service-worker.js');
 
-    fs.writeFile(filepath, swFileContents, err => {
+    fs.writeFile(filepath, swFileContents, function(err) {
       if (err) {
         cb(err);
         return;
